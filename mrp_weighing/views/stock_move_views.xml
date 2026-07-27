@@ -15,6 +15,18 @@
             <button name="action_reset_weights" position="attributes">
                 <attribute name="context">{'reset_all_lines': True}</attribute>
             </button>
+            <button name="action_print_weight_record_label" position="after">
+                <button
+                    t-if="record.is_has_production.raw_value and !['done', 'cancel', 'draft'].includes(record.state.raw_value)"
+                    type="object"
+                    name="action_finish_weighing_workorder"
+                    title="Finalizar la orden de fabricacion (solo si esta todo pesado)"
+                    class="btn btn-lg btn-success ms-2"
+                    confirm="Esto finalizara la operacion de pesaje/aprovisionamiento de ESTA orden de fabricacion. ¿Continuar?"
+                >
+                    <i class="fa fa-flag-checkered" role="image" />
+                </button>
+            </button>
         </field>
     </record>
 </odoo>
