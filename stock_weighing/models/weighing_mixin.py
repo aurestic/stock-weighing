@@ -30,10 +30,9 @@ class WeightMixin(models.AbstractModel):
         self.filtered_domain(self._has_weigh_domain()).has_weight = True
 
     def _search_has_weight(self, operator, value):
-        return [
-            (
-                "product_uom_category_id",
-                operator,
-                self.env.ref("uom.product_uom_categ_kgm").id,
-            )
-        ]
+        # Must stay consistent with _compute_has_weight, which already
+        # delegates to the _has_weigh_domain() hook: otherwise a model
+        # extending that hook (e.g. to also weigh Units) would compute
+        # has_weight=True but never be found by a has_weight=True search,
+        # such as the one behind the "Operaciones de pesaje" screen.
+        return self._has_weigh_domain()
