@@ -119,6 +119,26 @@
                                         >
                                             <i class="fa fa-print" role="image" />
                                         </button>
+                                        <button
+                                            t-if="record.tracking.raw_value and record.tracking.raw_value !== 'none' and !['done', 'cancel'].includes(record.state.raw_value)"
+                                            class="btn btn-lg btn-secondary ms-2"
+                                            name="action_open_change_lot_wizard"
+                                            type="object"
+                                            string="Change lot"
+                                            title="Change lot"
+                                        >
+                                            <i class="fa fa-exchange" role="image" />
+                                        </button>
+                                        <button
+                                            t-if="!['done', 'cancel'].includes(record.state.raw_value)"
+                                            class="btn btn-lg btn-danger ms-2"
+                                            name="action_scrap_from_weighing"
+                                            type="object"
+                                            string="Scrap"
+                                            title="Scrap"
+                                        >
+                                            <i class="fa fa-trash" role="image" />
+                                        </button>
                                     </div>
                                 </div>
                             </div>

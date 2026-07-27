@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="weighing_change_lot_wizard_form_view" model="ir.ui.view">
+        <field name="model">weighing.change.lot.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Change lot">
+                <field name="move_line_id" invisible="1" />
+                <field name="product_id" invisible="1" />
+                <group>
+                    <field name="old_lot_id" readonly="1" />
+                    <field name="new_lot_id" options="{'no_create': True}" />
+                    <field name="reason" placeholder="Reason for the change..." />
+                </group>
+                <footer>
+                    <button
+                        name="action_change_lot"
+                        type="object"
+                        string="Change lot"
+                        class="btn-primary"
+                        data-hotkey="r"
+                    />
+                    <button
+                        string="Cancel"
+                        special="cancel"
+                        class="btn-secondary"
+                        data-hotkey="z"
+                    />
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="weighing_change_lot_wizard_action" model="ir.actions.act_window">
+        <field name="res_model">weighing.change.lot.wizard</field>
+        <field name="name">Change lot</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="weighing_change_lot_wizard_form_view" />
+        <field name="target">new</field>
+    </record>
+</odoo>
