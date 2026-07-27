@@ -23,6 +23,7 @@
         "views/stock_picking_views.xml",
         "views/stock_picking_type_views.xml",
         "wizards/weighing_wizard_views.xml",
+        "wizards/change_lot_wizard_views.xml",
         "data/quick_start_screens.xml",
     ],
     "demo": [
