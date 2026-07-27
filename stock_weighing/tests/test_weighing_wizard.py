@@ -17,15 +17,12 @@ class TestWeighingWizard(TransactionCase):
                 "uom_id": cls.env.ref("uom.product_uom_kgm").id,
             }
         )
-        cls.quant = cls.env["stock.quant"].create(
-            {
-                "product_id": cls.product.id,
-                "quantity": 20,
-                "location_id": cls.stock_location.id,
-                "company_id": cls.env.company.id,
-            }
+        # _update_available_quantity, not a quant create + action_apply_inventory:
+        # the latter reads `inventory_quantity` (a separate, unset field) and
+        # would silently zero out the `quantity` we just set.
+        cls.env["stock.quant"]._update_available_quantity(
+            cls.product, cls.stock_location, 20.0
         )
-        cls.quant.action_apply_inventory()
 
     def _create_move(self, qty=10.0):
         move = self.env["stock.move"].create(
