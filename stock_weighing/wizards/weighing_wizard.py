@@ -153,6 +153,16 @@ class StockMoveWeightWizard(models.TransientModel):
             selected_line.has_recorded_weight = True
             selected_line.weighing_user_id = self.env.user
             selected_line.weighing_date = fields.Datetime.now()
+            # qty_picked is our own bookkeeping field: stock._action_done()
+            # reads `quantity` (and only processes lines where `picked` is
+            # True), not qty_picked. stock.picking.button_validate() syncs
+            # quantity from qty_picked for pickings, but a move weighed
+            # directly (no enclosing picking, e.g. a bare MRP component
+            # move) never gets that sync -- without these two lines it
+            # silently validates the originally reserved quantity instead
+            # of what was actually weighed.
+            selected_line.quantity = self.weight
+            selected_line.picked = True
         # Reset value
         else:
             selected_line.qty_picked = 0
@@ -160,6 +170,7 @@ class StockMoveWeightWizard(models.TransientModel):
             selected_line.has_recorded_weight = False
             selected_line.weighing_user_id = False
             selected_line.weighing_date = False
+            selected_line.picked = False
         # Unlock the operation
         selected_line.move_id.action_unlock_weigh_operation()
         self.weight = 0.0

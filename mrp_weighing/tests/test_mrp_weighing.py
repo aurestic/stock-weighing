@@ -118,6 +118,26 @@ class TestMrpWeighing(TransactionCase):
         sale_order.action_confirm()
         return sale_order
 
+    def test_action_weighing_operations_uses_move_raw_ids(self):
+        """The MO-level weighing button is for weighing what goes INTO the
+        production (components), not the manufactured output: it must
+        expose move_raw_ids, never move_finished_ids."""
+        self.product.write(
+            {
+                "route_ids": [(6, 0, [self.manufacture_route.id, self.mto_route.id])],
+            }
+        )
+        sale_order = self._create_sale_order()
+        picking = sale_order.picking_ids
+        production = picking.move_ids.move_orig_ids.production_id
+        self.assertTrue(production)
+        self.assertTrue(production.move_raw_ids)
+        self.assertTrue(production.has_weighing_operations)
+        action = production.action_weighing_operations()
+        action_move_ids = set(action["domain"][0][2])
+        self.assertEqual(action_move_ids, set(production.move_raw_ids.ids))
+        self.assertFalse(action_move_ids & set(production.move_finished_ids.ids))
+
     def test_weighing_from_wizard(self):
         sale_order = self._create_sale_order()
         wizard = self.env["weighing.wizard"].create(
