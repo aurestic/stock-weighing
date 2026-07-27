@@ -58,3 +58,39 @@ class StockMoveLine(models.Model):
         # Keep who deleted them
         self.weighing_user_id = self.env.user
         self.weighing_date = fields.Datetime.now()
+
+    def action_scrap_from_weighing(self):
+        """Scrap this line's product/lot directly from the weighing screen,
+        without leaving it to open the full Inventory app. Reuses the
+        standard stock.scrap wizard as-is (its own reason tags, its own
+        move) instead of reinventing scrap handling."""
+        self.ensure_one()
+        action = self.env["ir.actions.actions"]._for_xml_id("stock.action_stock_scrap")
+        action["context"] = dict(
+            self.env.context,
+            default_product_id=self.product_id.id,
+            default_lot_id=self.lot_id.id,
+            default_location_id=self.location_id.id,
+            default_scrap_qty=self.qty_picked or self.quantity,
+            default_origin=self.move_id.reference,
+        )
+        # The base action opens a list first; here we always want the form
+        # for a new scrap, prefilled from this line.
+        action["view_mode"] = "form"
+        action["views"] = [(False, "form")]
+        action["target"] = "new"
+        return action
+
+    def action_open_change_lot_wizard(self):
+        """Change the lot of an already-weighed line, keeping a record of
+        why (stock_weighing's own wizard only lets you pick a lot BEFORE
+        recording; this is for correcting one already recorded)."""
+        self.ensure_one()
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "stock_weighing.weighing_change_lot_wizard_action"
+        )
+        action["context"] = dict(
+            self.env.context,
+            default_move_line_id=self.id,
+        )
+        return action
