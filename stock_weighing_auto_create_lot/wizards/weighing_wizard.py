@@ -9,13 +9,22 @@ class WeighingWizard(models.TransientModel):
 
     show_auto_lot_info = fields.Boolean(compute="_compute_show_auto_lot_info")
 
+    def _get_auto_create_lot_picking_type(self):
+        """Picking type to check for the auto_create_lot flag.
+
+        Hook so modules for moves that don't carry their own
+        picking_type_id (e.g. mrp.production component consumption
+        moves) can resolve an equivalent one instead.
+        """
+        return self.move_id.picking_type_id
+
     @api.depends("lot_id")
     def _compute_show_auto_lot_info(self):
         self.show_auto_lot_info = False
         self.filtered(
             lambda x: (x.product_tracking != "none" and not self.lot_id)
             and x.wizard_state != "weight"
-            and x.move_id.picking_type_id.auto_create_lot
+            and x._get_auto_create_lot_picking_type().auto_create_lot
             and x.product_id.auto_create_lot
         ).show_auto_lot_info = True
 
@@ -23,7 +32,7 @@ class WeighingWizard(models.TransientModel):
         """It will raise an exception only if no autlot is allowd"""
         conditions = super()._lot_creation_constraints()
         conditions += [
-            not self.move_id.picking_type_id.auto_create_lot,
+            not self._get_auto_create_lot_picking_type().auto_create_lot,
             not self.product_id.auto_create_lot,
         ]
         return conditions
