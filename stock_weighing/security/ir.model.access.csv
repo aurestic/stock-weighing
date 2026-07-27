@@ -1,2 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 stock_weighing.access_weighing_wizard,access_weighing_wizard,stock_weighing.model_weighing_wizard,stock.group_stock_user,1,1,1,1
+stock_weighing.access_weighing_change_lot_wizard,access_weighing_change_lot_wizard,stock_weighing.model_weighing_change_lot_wizard,stock.group_stock_user,1,1,1,1
+stock_weighing.access_stock_move_line_lot_change,access_stock_move_line_lot_change,stock_weighing.model_stock_move_line_lot_change,stock.group_stock_user,1,1,1,0
