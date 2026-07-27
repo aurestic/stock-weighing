@@ -8,9 +8,6 @@ class TestMrpWeighingAutoCreateLot(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.manufacture_route = cls.env.ref("mrp.route_warehouse0_manufacture")
-        cls.warehouse = cls.env["stock.warehouse"].search([], limit=1)
-        cls.manufacturing_picking_type = cls.warehouse.manu_type_id
-        cls.manufacturing_picking_type.auto_create_lot = True
 
         cls.component = cls.env["product.product"].create(
             {
@@ -51,17 +48,32 @@ class TestMrpWeighingAutoCreateLot(TransactionCase):
         production_form.product_qty = 1
         production = production_form.save()
         production.action_confirm()
+        # Set on the production's own picking type, whichever warehouse it
+        # ended up using -- guessing it in advance is fragile in a
+        # multi-warehouse database.
+        production.picking_type_id.auto_create_lot = True
         return production
 
-    def test_raw_material_move_has_no_picking_type(self):
-        """Confirms the real-world gap this module fixes: component
-        consumption moves never carry their own picking_type_id."""
-        production = self._create_production()
-        self.assertFalse(production.move_raw_ids.picking_type_id)
-
-    def test_auto_create_lot_falls_back_to_production_picking_type(self):
+    def test_auto_create_lot_prefers_the_moves_own_picking_type(self):
+        """Standard Odoo sets move_raw_ids.picking_type_id via
+        _get_move_raw_values(): for a normally-created production this
+        module changes nothing, the move's own value wins."""
         production = self._create_production()
         move = production.move_raw_ids
+        self.assertTrue(move.picking_type_id)
+        wizard = self.env["weighing.wizard"].create({"move_id": move.id})
+        resolved = wizard._get_auto_create_lot_picking_type()
+        self.assertEqual(resolved, move.picking_type_id)
+        self.assertTrue(resolved.auto_create_lot)
+
+    def test_auto_create_lot_falls_back_to_production_picking_type(self):
+        """Some productions (seen in practice on data migrated from an
+        older Odoo version, where this FK was never populated) have
+        move_raw_ids with no picking_type_id of their own. This module's
+        fallback is what makes auto_create_lot still work for those."""
+        production = self._create_production()
+        move = production.move_raw_ids
+        move.picking_type_id = False
         wizard = self.env["weighing.wizard"].create({"move_id": move.id})
         self.assertEqual(
             wizard._get_auto_create_lot_picking_type(),

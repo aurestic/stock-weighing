@@ -28,14 +28,15 @@ Weighing assistant auto create lot for MRP components
 
 |badge1| |badge2| |badge3| |badge4| |badge5|
 
-Makes ``auto_create_lot`` (from Weighing assistant auto create lot) work
-for MRP component consumption moves too, not just regular picking
-transfers.
+Makes ``auto_create_lot`` (from Weighing assistant auto create lot) keep
+working for MRP component consumption moves whose ``picking_type_id``
+was never populated.
 
-Component consumption moves (``mrp.production.move_raw_ids``) never
-carry their own ``picking_type_id``, so the base check against the
-picking type's ``auto_create_lot`` flag never matches for them. This
-module falls back to the production's own picking type instead.
+Standard Odoo sets ``picking_type_id`` on
+``mrp.production.move_raw_ids`` when the production is created, so this
+normally isn't needed. It matters for productions where that field is
+missing (seen in practice on data migrated from an older Odoo version):
+this module falls back to the production's own picking type instead.
 
 **Table of contents**
 
