@@ -2,6 +2,7 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl)
 
 from odoo import fields, models
+from odoo.osv import expression
 
 
 class StockMoveLine(models.Model):
@@ -11,6 +12,26 @@ class StockMoveLine(models.Model):
         comodel_name="stock.quant",
         readonly=True,
     )
+
+    def _has_weigh_domain(self):
+        # Mirrors stock.move's override: components measured in Units
+        # (packaging, caps, boxes...) must also be weighable when they
+        # belong to a manufacturing order's raw materials.
+        domain = super()._has_weigh_domain()
+        unit_category = self.env.ref(
+            "uom.product_uom_categ_unit", raise_if_not_found=False
+        )
+        if not unit_category:
+            return domain
+        return expression.OR(
+            [
+                domain,
+                [
+                    ("move_id.raw_material_production_id", "!=", False),
+                    ("product_uom_category_id", "=", unit_category.id),
+                ],
+            ]
+        )
 
     def action_reset_weights(self):
         res = super().action_reset_weights()
