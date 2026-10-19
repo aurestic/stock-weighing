@@ -56,7 +56,10 @@ class TestWeighingWizard(TransactionCase):
             }
         )
         wizard.record_weight()
-        self.assertEqual(line.quantity, 4.5)
+        # stock_move_line_qty_picked: the weighed amount lives in qty_picked
+        # (and marks the line as picked); it is copied to `quantity` when the
+        # move is done, so the reserved quantity is kept until then.
+        self.assertEqual(line.qty_picked, 4.5)
         self.assertTrue(line.picked)
         move._action_done()
         self.assertEqual(move.state, "done")
